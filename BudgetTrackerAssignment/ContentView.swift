@@ -23,7 +23,7 @@ struct ContentView: View {
                     
                     // TODO: Show remaining budget here
                     // Note: Budget can change color in certain cases
-                    
+                    Text("$\(viewModel.remainingBudget, specifier: "%.2f")").font(.title).fontWeight(.bold).foregroundColor(viewModel.budgetColor)
                     
                 }
                 .padding()
@@ -34,13 +34,19 @@ struct ContentView: View {
                 VStack(spacing: 15) {
                     
                     // TODO: TextField for expense name
-                                        
+
+                    TextField("", text: $expenseName, prompt: Text("Expense Name")).frame(maxWidth: .infinity, maxHeight: 50).padding(.horizontal, 10).background(RoundedRectangle(cornerRadius: 10).fill(Color.white))
                     
                     // TODO: TextField for expense amount
-                    
+                    TextField("", text: $expenseAmount, prompt: Text("Amount")).frame(maxWidth: .infinity, maxHeight: 50).padding(.horizontal, 10).background(RoundedRectangle(cornerRadius: 10).fill(Color.white))
                     
                     Button {
                         // TODO: Add expense and remember to clear the fields
+                        if let doubleAmount = Double(expenseAmount) {
+                            viewModel.addExpense(name: expenseName, amount: doubleAmount)
+                        }
+                        expenseName = ""
+                        expenseAmount = ""
                     } label: {
                         Text("Add Expense")
                             .frame(maxWidth: .infinity, maxHeight: 50)
@@ -62,15 +68,30 @@ struct ContentView: View {
                         .font(.headline)
                     
                     // TODO: If there are no expenses, show "No expenses yet"
-                                                            
-                    ForEach($viewModel.expenses) { $expense in
-                        // TODO: Wrap each expense in a NavigationLink
-                        // Destination should be ExpenseDetailView(expense: $expense, viewModel: viewModel)
-                        
-                        // Inside the row, display:
-                        // - Expense name
-                        // - Expense amount
-                        // - A delete button
+                    if viewModel.isEmpty {
+                        Text("No expenses yet").foregroundStyle(.gray).italic()
+                    } else {
+                        ForEach($viewModel.expenses) { $expense in
+                            // TODO: Wrap each expense in a NavigationLink
+                            // Destination should be ExpenseDetailView(expense: $expense, viewModel: viewModel)
+                            
+                            // Inside the row, display:
+                            // - Expense name
+                            // - Expense amount
+                            // - A delete button
+                            NavigationLink(destination:ExpenseDetailView(expense: $expense, viewModel: viewModel)) {
+                                HStack {
+                                    Text("\(expense.name)").foregroundStyle(.blue)
+                                    Spacer()
+                                    Text("$\(expense.amount, specifier: "%.2f")").foregroundStyle(.blue).bold()
+                                    Button {
+                                        viewModel.removeExpense(expense: expense)
+                                    } label: {
+                                        Text("Delete").foregroundStyle(.red)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 .padding()
